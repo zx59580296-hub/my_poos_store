@@ -26,17 +26,36 @@
     </script>
 
     <style>
-        body { font-family: 'Cairo', sans-serif; background-color: #f8fafc; overflow: hidden; }
+        body { font-family: 'Cairo', sans-serif; background-color: #f8fafc; overflow-x: hidden; }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .fade-in { animation: fadeIn 0.3s ease-in-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .nav-btn.active { background-color: rgba(255, 255, 255, 0.12); border-right: 4px solid #3b82f6; color: white; font-weight: 700; }
+        
+        .nav-btn.active { background-color: rgba(255, 255, 255, 0.12); border-left: 4px solid #3b82f6; color: white; font-weight: 700; }
+        
         #toast-container { position: fixed; top: 20px; left: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
         .toast { min-width: 280px; padding: 14px 18px; border-radius: 10px; color: white; font-weight: 600; box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.15); display: flex; align-items: center; gap: 12px; }
         .toast.success { background-color: #10b981; }
         .toast.error { background-color: #ef4444; }
         .toast.info { background-color: #3b82f6; }
+        
+        /* Sidebar right slide transition */
+        #sidebar {
+            transition: transform 0.3s ease-in-out, width 0.3s ease-in-out;
+            transform: translateX(100%);
+            width: 0px;
+            overflow: hidden;
+            padding: 0;
+            border: none;
+            flex-shrink: 0;
+        }
+        #sidebar.open {
+            transform: translateX(0);
+            width: 16rem; /* 64 */
+            padding: inherit;
+        }
+
         @media print {
             body * { visibility: hidden !important; }
             #printable-invoice-modal, #printable-invoice-modal * { visibility: visible !important; }
@@ -45,11 +64,17 @@
         }
     </style>
 </head>
-<body class="text-gray-800 h-screen flex">
+<body class="text-gray-800 h-screen flex flex-row">
 
     <div id="toast-container"></div>
 
-    <!-- Login Screen (Secured with blank fields & password eye toggle) -->
+    <!-- Trial Countdown Floating Circle Badge (15 mins) on the left/bottom -->
+    <div id="trial-badge" class="fixed bottom-5 left-5 bg-amber-500 text-white w-20 h-20 rounded-full shadow-2xl z-50 hidden flex flex-col items-center justify-center border-4 border-white animate-bounce">
+        <p class="text-[9px] opacity-90 leading-none mb-0.5">متبقي في التجربة</p>
+        <span id="trial-timer" class="font-extrabold text-sm">15:00</span>
+    </div>
+
+    <!-- Login Screen (Clean with password eye toggle, hidden authorized credentials) -->
     <div id="login-screen" class="fixed inset-0 bg-slate-900 z-40 flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1444653614773-995cb1ef9efa?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center opacity-15"></div>
         <div class="relative z-10 bg-white w-full max-w-md p-8 rounded-3xl shadow-2xl fade-in border border-gray-100">
@@ -58,19 +83,19 @@
                     <i class="fa-solid fa-store text-3xl"></i>
                 </div>
                 <h1 class="text-2xl font-extrabold text-gray-900">نظام الإدارة والمحاسبة الذكي</h1>
-                <p class="text-gray-500 text-sm mt-1 font-semibold">أدخل البريد وكلمة المرور المعتمدة للوصول</p>
+                <p class="text-gray-500 text-sm mt-1 font-semibold">سجل الدخول بالبريد وكلمة المرور المعتمدة</p>
             </div>
 
             <form onsubmit="handleSecureLogin(event)" class="space-y-4 mb-4">
                 <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-1">البريد الإلكتروني <span class="text-red-500">*</span></label>
-                    <input type="email" id="login-email" placeholder="أدخل البريد الإلكتروني..." required class="w-full border border-gray-300 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none">
+                    <label class="block text-sm font-bold text-gray-700 mb-1 text-right">البريد الإلكتروني <span class="text-red-500">*</span></label>
+                    <input type="email" id="login-email" placeholder="أدخل البريد الإلكتروني..." required class="w-full border border-gray-300 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none text-right">
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-1">كلمة المرور <span class="text-red-500">*</span></label>
+                    <label class="block text-sm font-bold text-gray-700 mb-1 text-right">كلمة المرور <span class="text-red-500">*</span></label>
                     <div class="relative">
-                        <input type="password" id="login-password" placeholder="أدخل كلمة المرور..." required class="w-full border border-gray-300 rounded-xl px-4 py-2.5 pl-10 focus:ring-2 focus:ring-blue-500 outline-none">
-                        <button type="button" onclick="togglePasswordVisibility()" class="absolute left-3 top-3 text-gray-400 hover:text-gray-600 focus:outline-none">
+                        <input type="password" id="login-password" placeholder="أدخل كلمة المرور..." required class="w-full border border-gray-300 rounded-xl px-4 py-2.5 pr-10 focus:ring-2 focus:ring-blue-500 outline-none text-right">
+                        <button type="button" onclick="togglePasswordVisibility()" class="absolute right-3 top-3 text-gray-400 hover:text-gray-600 focus:outline-none">
                             <i id="eye-icon" class="fa-solid fa-eye"></i>
                         </button>
                     </div>
@@ -81,26 +106,176 @@
             </form>
 
             <button type="button" onclick="handleQuickDemoLogin()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl shadow transition flex items-center justify-center gap-2 mt-3">
-                <i class="fa-solid fa-bolt"></i> الدخول الفوري لتجربة المحل
+                <i class="fa-solid fa-bolt"></i> الدخول الفوري لتجربة المحل (فارغ تماماً - 15 دقيقة)
             </button>
         </div>
     </div>
 
-    <!-- Main App -->
-    <div id="main-app" class="hidden w-full h-full flex flex-col md:flex-row relative">
-        <aside id="sidebar" class="bg-slate-900 text-gray-300 w-64 h-full flex flex-col fixed md:relative z-30 transition-transform duration-300 transform translate-x-full md:translate-x-0 right-0 shadow-2xl">
+    <!-- Main App with Right-Side Sidebar structure -->
+    <div id="main-app" class="hidden w-full h-full flex flex-row-reverse relative overflow-hidden">
+        
+        <!-- Main Content Area (Left side of sidebar) -->
+        <main class="flex-1 h-full flex flex-col overflow-hidden bg-slate-50">
+            <header class="bg-white h-16 shadow-sm border-b border-gray-100 flex items-center justify-between px-6 z-10">
+                <div class="flex items-center gap-3 cursor-pointer" onclick="switchView('profile')">
+                    <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=250&auto=format&fit=crop" class="w-10 h-10 rounded-full object-cover border-2 border-blue-500 shadow-sm" id="user-avatar-img">
+                    <span class="text-sm font-bold text-gray-800" id="user-display-name">مدير النظام</span>
+                </div>
+                <div class="flex items-center gap-4">
+                    <h2 id="header-title" class="text-xl font-bold text-gray-800 text-right">نظرة عامة</h2>
+                    <button onclick="toggleSidebar()" class="text-gray-700 hover:text-blue-600 focus:outline-none p-2 rounded-xl hover:bg-gray-100 transition">
+                        <i class="fa-solid fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </header>
+            
+            <div class="flex-1 overflow-y-auto p-6 space-y-6 text-right" dir="rtl">
+                <!-- Dashboard -->
+                <div id="view-dashboard" class="view-section fade-in space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="bg-white p-6 rounded-2xl shadow-sm border flex items-center justify-between">
+                            <div class="w-12 h-12 bg-emerald-50 rounded-2xl text-emerald-500 flex items-center justify-center text-xl"><i class="fa-solid fa-arrow-trend-up"></i></div>
+                            <div><p class="text-gray-500 text-sm font-semibold mb-1">إجمالي المبيعات</p><h3 id="stat-sales" class="text-2xl font-black text-gray-800">0 ج.م</h3></div>
+                        </div>
+                        <div class="bg-white p-6 rounded-2xl shadow-sm border flex items-center justify-between">
+                            <div class="w-12 h-12 bg-rose-50 rounded-2xl text-rose-500 flex items-center justify-center text-xl"><i class="fa-solid fa-cart-arrow-down"></i></div>
+                            <div><p class="text-gray-500 text-sm font-semibold mb-1">المشتريات والمصروفات</p><h3 id="stat-purchases" class="text-2xl font-black text-gray-800">0 ج.م</h3></div>
+                        </div>
+                        <div class="bg-white p-6 rounded-2xl shadow-sm border flex items-center justify-between">
+                            <div class="w-12 h-12 bg-blue-50 rounded-2xl text-blue-600 flex items-center justify-center text-xl"><i class="fa-solid fa-sack-dollar"></i></div>
+                            <div><p class="text-gray-500 text-sm font-semibold mb-1">الأرباح التقديرية</p><h3 id="stat-profit" class="text-2xl font-black text-blue-600">0 ج.م</h3></div>
+                        </div>
+                        <div class="bg-white p-6 rounded-2xl shadow-sm border flex items-center justify-between">
+                            <div class="w-12 h-12 bg-purple-50 rounded-2xl text-purple-500 flex items-center justify-center text-xl"><i class="fa-solid fa-warehouse"></i></div>
+                            <div><p class="text-gray-500 text-sm font-semibold mb-1">قيمة المخزون الحالي</p><h3 id="stat-inventory" class="text-2xl font-black text-purple-600">0 ج.م</h3></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sales POS -->
+                <div id="view-sales" class="view-section hidden fade-in h-full flex flex-col">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
+                        <div class="bg-white rounded-2xl shadow-sm border flex flex-col h-[500px] overflow-hidden">
+                            <div class="p-4 bg-blue-600 text-white flex justify-between items-center"><h3 class="font-bold">الفاتورة الحالية</h3><button onclick="clearCart()" class="text-blue-200 text-sm">تفريغ</button></div>
+                            <div class="flex-1 overflow-y-auto p-3" id="cart-items-container"><div class="text-center py-10 text-gray-400 text-sm">الفاتورة فارغة</div></div>
+                            <div class="p-4 border-t bg-slate-50"><div class="flex justify-between items-center mb-3 text-lg"><span class="font-bold">الإجمالي:</span><span id="cart-total" class="font-bold text-2xl text-blue-600">0 ج.م</span></div><button onclick="checkout()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl shadow">إصدار الفاتورة</button></div>
+                        </div>
+                        <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border flex flex-col h-[500px] overflow-hidden">
+                            <div class="p-4 border-b bg-slate-50 flex justify-between items-center"><h3 class="font-bold text-gray-800">اختر المنتجات</h3><input type="text" id="pos-search" onkeyup="filterPosItems()" placeholder="بحث..." class="border rounded-xl px-3 py-1 text-sm outline-none text-right"></div>
+                            <div class="p-4 overflow-y-auto flex-1 bg-slate-50/50"><div id="pos-products-grid" class="grid grid-cols-2 md:grid-cols-3 gap-3"></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Purchases (Right to left correct layout: Name, Qty, Cost, Price) -->
+                <div id="view-purchases" class="view-section hidden fade-in space-y-6">
+                    <div class="bg-white rounded-2xl shadow-sm border p-6">
+                        <div class="flex justify-between items-center mb-4 border-b pb-3">
+                            <h3 class="text-lg font-bold text-gray-800">تسجيل فاتورة مشتريات</h3>
+                            <input type="file" id="receipt-upload" accept="image/*" class="hidden" onchange="handleReceiptScan(event)">
+                            <button onclick="document.getElementById('receipt-upload').click()" class="bg-purple-50 hover:bg-purple-100 text-purple-700 font-bold py-2 px-4 rounded-xl text-sm border border-purple-200"><i class="fa-solid fa-camera-retro"></i> المسح الذكي بالفاتورة (AI)</button>
+                        </div>
+                        <form id="purchase-form" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                            <div><label class="block text-sm mb-1">اسم المنتج</label><input type="text" id="purch-name" required class="w-full border rounded-xl px-3 py-2 text-sm outline-none text-right"></div>
+                            <div><label class="block text-sm mb-1">الكمية</label><input type="number" id="purch-qty" required min="1" class="w-full border rounded-xl px-3 py-2 text-sm outline-none text-right"></div>
+                            <div><label class="block text-sm mb-1">سعر الشراء</label><input type="number" id="purch-cost" required step="1" class="w-full border rounded-xl px-3 py-2 text-sm outline-none text-right"></div>
+                            <div><label class="block text-sm mb-1">سعر البيع</label><input type="number" id="purch-price" required step="1" class="w-full border rounded-xl px-3 py-2 text-sm outline-none text-right"></div>
+                            <div class="md:col-span-4 flex justify-end"><button type="button" onclick="submitPurchase()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-6 rounded-xl shadow">حفظ وإضافة للمخزن</button></div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Inventory -->
+                <div id="view-inventory" class="view-section hidden fade-in h-full flex flex-col">
+                    <div class="bg-white rounded-2xl shadow-sm border flex flex-col h-full overflow-hidden">
+                        <div class="p-4 border-b bg-slate-50 flex justify-between items-center"><h3 class="font-bold">جرد المخازن</h3><input type="text" id="inv-search" onkeyup="filterInventory()" placeholder="بحث..." class="border rounded-xl px-3 py-1 text-sm outline-none text-right"></div>
+                        <div class="flex-1 overflow-y-auto"><table class="w-full text-right"><thead class="bg-slate-100 text-sm"><tr><th class="p-3">المنتج</th><th class="p-3">الكمية</th><th class="p-3">التكلفة</th><th class="p-3">البيع</th><th class="p-3">الحالة</th></tr></thead><tbody id="inventory-table-body" class="divide-y text-sm"></tbody></table></div>
+                    </div>
+                </div>
+
+                <!-- Transactions Log with individual trash delete -->
+                <div id="view-transactions" class="view-section hidden fade-in h-full flex flex-col">
+                    <div class="bg-white rounded-2xl shadow-sm border flex flex-col h-full overflow-hidden">
+                        <div class="p-4 border-b bg-slate-50 flex justify-between items-center">
+                            <h3 class="font-bold">سجل العمليات والفواتير</h3>
+                            <button onclick="clearAllTransactions()" class="bg-red-50 hover:bg-red-100 text-red-600 font-bold px-4 py-1.5 rounded-xl text-xs border border-red-200 transition">
+                                <i class="fa-solid fa-trash-can"></i> مسح سجل العمليات بالكامل
+                            </button>
+                        </div>
+                        <div class="flex-1 overflow-y-auto"><table class="w-full text-right"><thead class="bg-slate-100 text-sm"><tr><th class="p-3">رقم الفاتورة / الوصف</th><th class="p-3">النوع</th><th class="p-3">التاريخ والوقت</th><th class="p-3">المبلغ</th><th class="p-3 text-center">إجراءات الحذف</th></tr></thead><tbody id="transactions-log-body" class="divide-y text-sm"></tbody></table></div>
+                    </div>
+                </div>
+
+                <!-- Employees -->
+                <div id="view-employees" class="view-section hidden fade-in space-y-6">
+                    <div class="bg-white rounded-2xl shadow-sm border p-6">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">إدارة العمال والرواتب</h3>
+                        <form id="employee-form" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end mb-6">
+                            <div><input type="text" id="emp-name" placeholder="اسم العامل" required class="border rounded-xl px-3 py-2 text-sm w-full outline-none text-right"></div>
+                            <div><input type="text" id="emp-role" placeholder="الوظيفة" required class="border rounded-xl px-3 py-2 text-sm w-full outline-none text-right"></div>
+                            <div><input type="text" id="emp-phone" placeholder="الهاتف" class="border rounded-xl px-3 py-2 text-sm w-full outline-none text-right"></div>
+                            <div><input type="number" id="emp-salary" placeholder="الراتب الشهري" required class="border rounded-xl px-3 py-2 text-sm w-full outline-none text-right"></div>
+                            <div class="md:col-span-4 flex justify-end"><button type="button" onclick="submitEmployee()" class="bg-rose-600 text-white font-bold py-2.5 px-6 rounded-xl shadow">حفظ الموظف</button></div>
+                        </form>
+                        <div class="overflow-x-auto"><table class="w-full text-right"><thead class="bg-slate-100 text-sm"><tr><th class="p-3">الاسم</th><th class="p-3">الوظيفة</th><th class="p-3">الراتب</th><th class="p-3 text-center">صرف الراتب</th></tr></thead><tbody id="employees-table-body" class="divide-y text-sm"></tbody></table></div>
+                    </div>
+                </div>
+
+                <!-- Profile -->
+                <div id="view-profile" class="view-section hidden fade-in">
+                    <div class="bg-white rounded-2xl shadow-sm border p-6 max-w-xl mx-auto">
+                        <h3 class="text-xl font-bold mb-4 border-b pb-2 text-right">إعدادات المتجر والملف الشخصي</h3>
+                        <div class="flex items-center gap-4 mb-6 bg-slate-50 p-4 rounded-xl border">
+                            <img id="profile-preview-avatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=250&auto=format&fit=crop" class="w-16 h-16 rounded-full object-cover border-2 border-blue-500 shadow-sm">
+                            <div class="text-right">
+                                <label class="block text-sm font-bold text-blue-600 cursor-pointer hover:underline mb-1">
+                                    <i class="fa-solid fa-camera"></i> تغيير صورة البروفايل
+                                    <input type="file" accept="image/*" class="hidden" onchange="handleAvatarUpload(event)">
+                                </label>
+                                <p class="text-xs text-gray-400">اختر صورة جديدة من جهازك</p>
+                            </div>
+                        </div>
+                        <form onsubmit="saveStoreSettings(event)" class="space-y-4">
+                            <div><label class="block text-sm font-bold mb-1 text-right">اسم المتجر</label><input type="text" id="setting-store-name" value="المتجر الشامل" class="w-full border rounded-xl px-3 py-2 text-sm outline-none text-right"></div>
+                            <div><label class="block text-sm font-bold mb-1 text-right">اسم المدير</label><input type="text" id="setting-mgr-name" value="مدير النظام" class="w-full border rounded-xl px-3 py-2 text-sm outline-none text-right"></div>
+                            <button type="submit" class="bg-blue-600 text-white font-bold py-2 px-6 rounded-xl shadow">حفظ الإعدادات</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- AI Consultant -->
+                <div id="view-ai" class="view-section hidden fade-in h-full flex flex-col">
+                    <div class="bg-white rounded-2xl shadow-sm border flex flex-col h-[550px] overflow-hidden">
+                        <div class="p-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white flex items-center justify-between">
+                            <div><h3 class="font-bold">المستشار المالي والتحليلي (AI)</h3><p class="text-xs opacity-80">تحليل فوري لأرقام متجرك والمخزون</p></div>
+                            <i class="fa-solid fa-brain text-xl"></i>
+                        </div>
+                        <div class="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50 text-right" id="ai-chat-container">
+                            <div class="flex self-start"><div class="bg-white border text-gray-800 p-3.5 rounded-2xl max-w-lg shadow-sm text-sm">مرحباً! أنا مساعدك الذكي. اسألني عن أرباحك، المخزون، أو أي استشارة لزيادة مبيعات المحل.</div></div>
+                        </div>
+                        <div class="p-3 border-t bg-white flex gap-2"><input type="text" id="ai-input" onkeypress="if(event.key==='Enter') sendAIMessage()" placeholder="اسأل المستشار المالي..." class="flex-1 border rounded-xl px-4 py-2.5 text-sm outline-none text-right"><button onclick="sendAIMessage()" class="bg-indigo-600 text-white px-5 rounded-xl text-sm font-bold"><i class="fa-solid fa-paper-plane"></i></button></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Sidebar on the Right -->
+        <aside id="sidebar" class="bg-slate-900 text-gray-300 h-full flex flex-col z-30 shadow-2xl">
             <div class="p-5 border-b border-slate-800 flex items-center justify-between">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center text-white font-bold shadow-lg">
                         <i class="fa-solid fa-store text-lg"></i>
                     </div>
-                    <div>
+                    <div class="text-right">
                         <h2 class="text-white text-base font-bold leading-tight" id="sidebar-store-name">المتجر الشامل</h2>
                         <span class="text-[10px] bg-blue-500/20 text-blue-400 border border-blue-500/30 px-2 py-0.5 rounded-full font-bold">Ultimate Pro</span>
                     </div>
                 </div>
+                <button onclick="toggleSidebar()" class="text-gray-400 hover:text-white">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
             </div>
-            <nav class="flex-1 overflow-y-auto py-4 flex flex-col gap-1 px-3">
+            <nav class="flex-1 overflow-y-auto py-4 flex flex-col gap-1 px-3 text-right">
                 <button onclick="switchView('dashboard', this)" class="nav-btn active flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition w-full text-right"><i class="fa-solid fa-chart-pie w-5 text-blue-400"></i> <span>لوحة القيادة</span></button>
                 <button onclick="switchView('sales', this)" class="nav-btn flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition w-full text-right"><i class="fa-solid fa-cart-shopping w-5 text-emerald-400"></i> <span>المبيعات (POS)</span></button>
                 <button onclick="switchView('purchases', this)" class="nav-btn flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition w-full text-right"><i class="fa-solid fa-truck-loading w-5 text-amber-400"></i> <span>المشتريات والموردين</span></button>
@@ -114,134 +289,15 @@
                 <button onclick="handleLogout()" class="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-red-500/10 text-red-400 w-full text-right transition font-semibold"><i class="fa-solid fa-sign-out-alt w-5"></i> <span>تسجيل الخروج</span></button>
             </div>
         </aside>
-        
-        <main class="flex-1 h-full flex flex-col overflow-hidden bg-slate-50">
-            <header class="bg-white h-16 shadow-sm border-b border-gray-100 flex items-center justify-between px-6 z-10">
-                <h2 id="header-title" class="text-xl font-bold text-gray-800">نظرة عامة</h2>
-                <div class="flex items-center gap-3 cursor-pointer" onclick="switchView('profile')">
-                    <span class="text-sm font-bold text-gray-800" id="user-display-name">مدير النظام</span>
-                    <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=250&auto=format&fit=crop" class="w-10 h-10 rounded-full object-cover border-2 border-blue-500 shadow-sm" id="user-avatar-img">
-                </div>
-            </header>
-            
-            <div class="flex-1 overflow-y-auto p-6 space-y-6">
-                <!-- Dashboard -->
-                <div id="view-dashboard" class="view-section fade-in space-y-6">
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <div class="bg-white p-6 rounded-2xl shadow-sm border flex items-center justify-between"><div><p class="text-gray-500 text-sm font-semibold mb-1">إجمالي المبيعات</p><h3 id="stat-sales" class="text-2xl font-black text-gray-800">0 ج.م</h3></div><div class="w-12 h-12 bg-emerald-50 rounded-2xl text-emerald-500 flex items-center justify-center text-xl"><i class="fa-solid fa-arrow-trend-up"></i></div></div>
-                        <div class="bg-white p-6 rounded-2xl shadow-sm border flex items-center justify-between"><div><p class="text-gray-500 text-sm font-semibold mb-1">المشتريات والمصروفات</p><h3 id="stat-purchases" class="text-2xl font-black text-gray-800">0 ج.م</h3></div><div class="w-12 h-12 bg-rose-50 rounded-2xl text-rose-500 flex items-center justify-center text-xl"><i class="fa-solid fa-cart-arrow-down"></i></div></div>
-                        <div class="bg-white p-6 rounded-2xl shadow-sm border flex items-center justify-between"><div><p class="text-gray-500 text-sm font-semibold mb-1">الأرباح التقديرية</p><h3 id="stat-profit" class="text-2xl font-black text-blue-600">0 ج.م</h3></div><div class="w-12 h-12 bg-blue-50 rounded-2xl text-blue-600 flex items-center justify-center text-xl"><i class="fa-solid fa-sack-dollar"></i></div></div>
-                        <div class="bg-white p-6 rounded-2xl shadow-sm border flex items-center justify-between"><div><p class="text-gray-500 text-sm font-semibold mb-1">قيمة المخزون الحالي</p><h3 id="stat-inventory" class="text-2xl font-black text-purple-600">0 ج.م</h3></div><div class="w-12 h-12 bg-purple-50 rounded-2xl text-purple-500 flex items-center justify-center text-xl"><i class="fa-solid fa-warehouse"></i></div></div>
-                    </div>
-                </div>
-
-                <!-- Sales POS -->
-                <div id="view-sales" class="view-section hidden fade-in h-full flex flex-col">
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
-                        <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border flex flex-col h-[500px] overflow-hidden">
-                            <div class="p-4 border-b bg-slate-50 flex justify-between items-center"><h3 class="font-bold text-gray-800">اختر المنتجات</h3><input type="text" id="pos-search" onkeyup="filterPosItems()" placeholder="بحث..." class="border rounded-xl px-3 py-1 text-sm outline-none"></div>
-                            <div class="p-4 overflow-y-auto flex-1 bg-slate-50/50"><div id="pos-products-grid" class="grid grid-cols-2 md:grid-cols-3 gap-3"></div></div>
-                        </div>
-                        <div class="bg-white rounded-2xl shadow-sm border flex flex-col h-[500px] overflow-hidden">
-                            <div class="p-4 bg-blue-600 text-white flex justify-between items-center"><h3 class="font-bold">الفاتورة الحالية</h3><button onclick="clearCart()" class="text-blue-200 text-sm">تفريغ</button></div>
-                            <div class="flex-1 overflow-y-auto p-3" id="cart-items-container"><div class="text-center py-10 text-gray-400 text-sm">الفاتورة فارغة</div></div>
-                            <div class="p-4 border-t bg-slate-50"><div class="flex justify-between items-center mb-3 text-lg"><span class="font-bold">الإجمالي:</span><span id="cart-total" class="font-bold text-2xl text-blue-600">0.00 ج.م</span></div><button onclick="checkout()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl shadow">إصدار الفاتورة</button></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Purchases -->
-                <div id="view-purchases" class="view-section hidden fade-in space-y-6">
-                    <div class="bg-white rounded-2xl shadow-sm border p-6">
-                        <div class="flex justify-between items-center mb-4 border-b pb-3">
-                            <h3 class="text-lg font-bold text-gray-800">تسجيل فاتورة مشتريات</h3>
-                            <button onclick="document.getElementById('receipt-upload').click()" class="bg-purple-50 hover:bg-purple-100 text-purple-700 font-bold py-2 px-4 rounded-xl text-sm border border-purple-200"><i class="fa-solid fa-camera-retro"></i> المسح الذكي بالفاتورة (AI)</button>
-                            <input type="file" id="receipt-upload" accept="image/*" class="hidden" onchange="handleReceiptScan(event)">
-                        </div>
-                        <form id="purchase-form" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-                            <div><label class="block text-sm mb-1">اسم المنتج</label><input type="text" id="purch-name" required class="w-full border rounded-xl px-3 py-2 text-sm outline-none"></div>
-                            <div><label class="block text-sm mb-1">الكمية</label><input type="number" id="purch-qty" required min="1" class="w-full border rounded-xl px-3 py-2 text-sm outline-none"></div>
-                            <div><label class="block text-sm mb-1">سعر الشراء</label><input type="number" id="purch-cost" required step="0.01" class="w-full border rounded-xl px-3 py-2 text-sm outline-none"></div>
-                            <div><label class="block text-sm mb-1">سعر البيع</label><input type="number" id="purch-price" required step="0.01" class="w-full border rounded-xl px-3 py-2 text-sm outline-none"></div>
-                            <div class="md:col-span-4 flex justify-end"><button type="button" onclick="submitPurchase()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-6 rounded-xl shadow">حفظ وإضافة للمخزن</button></div>
-                        </form>
-                    </div>
-                </div>
-
-                <!-- Inventory -->
-                <div id="view-inventory" class="view-section hidden fade-in h-full flex flex-col">
-                    <div class="bg-white rounded-2xl shadow-sm border flex flex-col h-full overflow-hidden">
-                        <div class="p-4 border-b bg-slate-50 flex justify-between items-center"><h3 class="font-bold">جرد المخازن</h3><input type="text" id="inv-search" onkeyup="filterInventory()" placeholder="بحث..." class="border rounded-xl px-3 py-1 text-sm outline-none"></div>
-                        <div class="flex-1 overflow-y-auto"><table class="w-full text-right"><thead class="bg-slate-100 text-sm"><tr><th class="p-3">المنتج</th><th class="p-3">الكمية</th><th class="p-3">التكلفة</th><th class="p-3">البيع</th><th class="p-3">الحالة</th></tr></thead><tbody id="inventory-table-body" class="divide-y text-sm"></tbody></table></div>
-                    </div>
-                </div>
-
-                <!-- Transactions Log -->
-                <div id="view-transactions" class="view-section hidden fade-in h-full flex flex-col">
-                    <div class="bg-white rounded-2xl shadow-sm border flex flex-col h-full overflow-hidden">
-                        <div class="p-4 border-b bg-slate-50 flex justify-between items-center"><h3 class="font-bold">سجل العمليات والفواتير (بالثانية)</h3></div>
-                        <div class="flex-1 overflow-y-auto"><table class="w-full text-right"><thead class="bg-slate-100 text-sm"><tr><th class="p-3">رقم الفاتورة</th><th class="p-3">النوع</th><th class="p-3">التاريخ والوقت</th><th class="p-3">المبلغ</th><th class="p-3 text-center">إجراءات</th></tr></thead><tbody id="transactions-log-body" class="divide-y text-sm"></tbody></table></div>
-                    </div>
-                </div>
-
-                <!-- Employees -->
-                <div id="view-employees" class="view-section hidden fade-in space-y-6">
-                    <div class="bg-white rounded-2xl shadow-sm border p-6">
-                        <h3 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">إدارة العمال والرواتب</h3>
-                        <form id="employee-form" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end mb-6">
-                            <div><input type="text" id="emp-name" placeholder="اسم العامل" required class="border rounded-xl px-3 py-2 text-sm w-full outline-none"></div>
-                            <div><input type="text" id="emp-role" placeholder="الوظيفة" required class="border rounded-xl px-3 py-2 text-sm w-full outline-none"></div>
-                            <div><input type="text" id="emp-phone" placeholder="الهاتف" class="border rounded-xl px-3 py-2 text-sm w-full outline-none"></div>
-                            <div><input type="number" id="emp-salary" placeholder="الراتب الشهري" required class="border rounded-xl px-3 py-2 text-sm w-full outline-none"></div>
-                            <div class="md:col-span-4 flex justify-end"><button type="button" onclick="submitEmployee()" class="bg-rose-600 text-white font-bold py-2.5 px-6 rounded-xl shadow">حفظ الموظف</button></div>
-                        </form>
-                        <div class="overflow-x-auto"><table class="w-full text-right"><thead class="bg-slate-100 text-sm"><tr><th class="p-3">الاسم</th><th class="p-3">الوظيفة</th><th class="p-3">الراتب</th><th class="p-3 text-center">صرف الراتب</th></tr></thead><tbody id="employees-table-body" class="divide-y text-sm"></tbody></table></div>
-                    </div>
-                </div>
-
-                <!-- Profile with Custom Avatar Upload -->
-                <div id="view-profile" class="view-section hidden fade-in">
-                    <div class="bg-white rounded-2xl shadow-sm border p-6 max-w-xl mx-auto">
-                        <h3 class="text-xl font-bold mb-4 border-b pb-2">إعدادات المتجر والملف الشخصي</h3>
-                        <div class="flex items-center gap-4 mb-6 bg-slate-50 p-4 rounded-xl border">
-                            <img id="profile-preview-avatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=250&auto=format&fit=crop" class="w-16 h-16 rounded-full object-cover border-2 border-blue-500 shadow-sm">
-                            <div>
-                                <label class="block text-sm font-bold text-blue-600 cursor-pointer hover:underline mb-1">
-                                    <i class="fa-solid fa-camera"></i> تغيير صورة البروفايل
-                                    <input type="file" accept="image/*" class="hidden" onchange="handleAvatarUpload(event)">
-                                </label>
-                                <p class="text-xs text-gray-400">اختر صورة جديدة من جهازك</p>
-                            </div>
-                        </div>
-                        <form onsubmit="saveStoreSettings(event)" class="space-y-4">
-                            <div><label class="block text-sm font-bold mb-1">اسم المتجر</label><input type="text" id="setting-store-name" value="المتجر الشامل" class="w-full border rounded-xl px-3 py-2 text-sm outline-none"></div>
-                            <div><label class="block text-sm font-bold mb-1">اسم المدير</label><input type="text" id="setting-mgr-name" value="مدير النظام" class="w-full border rounded-xl px-3 py-2 text-sm outline-none"></div>
-                            <button type="submit" class="bg-blue-600 text-white font-bold py-2 px-6 rounded-xl shadow">حفظ الإعدادات</button>
-                        </form>
-                    </div>
-                </div>
-
-                <!-- AI Consultant -->
-                <div id="view-ai" class="view-section hidden fade-in h-full flex flex-col">
-                    <div class="bg-white rounded-2xl shadow-sm border flex flex-col h-[550px] overflow-hidden">
-                        <div class="p-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white flex items-center gap-3"><i class="fa-solid fa-brain text-xl"></i><div><h3 class="font-bold">المستشار المالي والتحليلي (AI)</h3><p class="text-xs opacity-80">تحليل فوري لأرقام متجرك والمخزون</p></div></div>
-                        <div class="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50" id="ai-chat-container">
-                            <div class="flex self-start"><div class="bg-white border text-gray-800 p-3.5 rounded-2xl max-w-lg shadow-sm text-sm">مرحباً! أنا مساعدك الذكي. اسألني عن أرباحك، المخزون، أو أي استشارة لزيادة مبيعات المحل.</div></div>
-                        </div>
-                        <div class="p-3 border-t bg-white flex gap-2"><input type="text" id="ai-input" onkeypress="if(event.key==='Enter') sendAIMessage()" placeholder="اسأل المستشار المالي..." class="flex-1 border rounded-xl px-4 py-2.5 text-sm outline-none"><button onclick="sendAIMessage()" class="bg-indigo-600 text-white px-5 rounded-xl text-sm font-bold"><i class="fa-solid fa-paper-plane"></i></button></div>
-                    </div>
-                </div>
-            </div>
-        </main>
     </div>
 
     <!-- Invoice Modal -->
     <div id="invoice-modal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative" id="printable-invoice-modal">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative text-right" id="printable-invoice-modal">
             <h2 class="text-xl font-bold text-center mb-2" id="inv-modal-store-title">المتجر الشامل</h2>
-            <div class="text-xs text-gray-500 mb-4 text-center">رقم الفاتورة: <span id="inv-modal-id">#INV-0000</span> | التاريخ: <span id="inv-modal-date">--</span></div>
+            <div class="text-xs text-gray-500 mb-4 text-center">رقم الفاتورة: <span id="inv-modal-id">#INV-0000</span> | <span id="inv-modal-date">--</span></div>
             <div class="border-t border-b py-2 mb-4 max-h-48 overflow-y-auto"><table class="w-full text-right text-xs"><tbody id="inv-modal-items"></tbody></table></div>
-            <div class="text-base font-bold flex justify-between mb-4"><span>الإجمالي:</span><span id="inv-modal-total" class="text-blue-600">0.00 ج.م</span></div>
+            <div class="text-base font-bold flex justify-between mb-4"><span>الإجمالي:</span><span id="inv-modal-total" class="text-blue-600">0 ج.م</span></div>
             <div class="flex justify-center mb-4"><img id="inv-modal-qr" class="w-24 h-24 object-contain"></div>
             <div class="flex gap-2"><button onclick="window.print()" class="flex-1 bg-blue-600 text-white font-bold py-2 rounded-xl text-sm">طباعة</button><button onclick="closeInvoiceModal()" class="bg-gray-200 text-gray-700 font-bold py-2 px-4 rounded-xl text-sm">إغلاق</button></div>
         </div>
@@ -258,7 +314,7 @@
             setTimeout(() => t.remove(), 3000);
         };
 
-        const formatMoney = (amt) => Number(amt || 0).toLocaleString('ar-EG', {minimumFractionDigits: 2}) + ' ج.م';
+        const formatMoney = (amt) => Math.round(Number(amt || 0)).toLocaleString('ar-EG') + ' ج.م';
         const formatDate = (d) => d ? new Date(d).toLocaleString('ar-EG') : '';
 
         window.togglePasswordVisibility = function() {
@@ -273,6 +329,11 @@
             }
         };
 
+        window.toggleSidebar = function() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('open');
+        };
+
         window.switchView = function(viewId, btn) {
             document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
             const target = document.getElementById(`view-${viewId}`);
@@ -282,29 +343,58 @@
             if(viewId === 'sales') renderPOSGrid();
         };
 
+        let currentActiveUser = 'default';
+        let trialTimerInterval = null;
+
         window.handleSecureLogin = function(event) {
             event.preventDefault();
             const email = document.getElementById('login-email').value.trim();
             const pass = document.getElementById('login-password').value.trim();
 
             if(email === 'admin@store.com' && pass === '59580296') {
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('main-app').classList.remove('hidden');
-                showToast("تم تسجيل الدخول بنجاح!", "success");
-                loadLocalDemoData();
+                currentActiveUser = 'admin_store';
+                startAppSession("مدير المحل الأول (Admin)");
+            } else if(email === 'zmk@store.com' && pass === '4390892') {
+                currentActiveUser = 'zmk_store';
+                startAppSession("صاحب المحل الثاني (ZMK)");
             } else {
-                showToast("البريد أو كلمة المرور غير صحيحة (استخدم admin@store.com و 59580296)", "error");
+                showToast("البريد أو كلمة المرور غير صحيحة", "error");
             }
         };
 
         window.handleQuickDemoLogin = function() {
-            document.getElementById('login-screen').classList.add('hidden');
-            document.getElementById('main-app').classList.remove('hidden');
-            showToast("تم الدخول الفوري بنجاح!", "success");
-            loadLocalDemoData();
+            currentActiveUser = 'trial_demo';
+            startAppSession("المحل التجريبي الفوري");
+            
+            document.getElementById('trial-badge').classList.remove('hidden');
+            let timeLeft = 900; // 15 minutes (900s)
+            if(trialTimerInterval) clearInterval(trialTimerInterval);
+            trialTimerInterval = setInterval(() => {
+                timeLeft--;
+                const mins = String(Math.floor(timeLeft / 60)).padStart(2, '0');
+                const secs = String(timeLeft % 60).padStart(2, '0');
+                const timerEl = document.getElementById('trial-timer');
+                if(timerEl) timerEl.innerText = `${mins}:${secs}`;
+                
+                if(timeLeft <= 0) {
+                    clearInterval(trialTimerInterval);
+                    handleLogout();
+                    showToast("انتهت وقت التجربة (15 دقيقة). تم تسجيل الخروج تلقائياً.", "info");
+                }
+            }, 1000);
         };
 
+        function startAppSession(userName) {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('main-app').classList.remove('hidden');
+            document.getElementById('user-display-name').innerText = userName;
+            loadUserData();
+            showToast("تم تسجيل الدخول بنجاح!", "success");
+        }
+
         window.handleLogout = function() {
+            if(trialTimerInterval) clearInterval(trialTimerInterval);
+            document.getElementById('trial-badge').classList.add('hidden');
             document.getElementById('main-app').classList.add('hidden');
             document.getElementById('login-screen').classList.remove('hidden');
             showToast("تم تسجيل الخروج", "info");
@@ -318,24 +408,39 @@
                 const url = e.target.result;
                 document.getElementById('user-avatar-img').src = url;
                 document.getElementById('profile-preview-avatar').src = url;
+                localStorage.setItem(`avatar_${currentActiveUser}`, url);
                 showToast("تم تحديث صورة البروفايل بنجاح", "success");
             };
             reader.readAsDataURL(file);
         };
 
-        let inventory = [
-            { id: '1', name: 'شاشة سامسونج 24 بوصة', stock: 12, cost: 3000, price: 3800 },
-            { id: '2', name: 'كيبورد ميكانيكي RGB', stock: 25, cost: 450, price: 650 },
-            { id: '3', name: 'ماوس لاسلكي احترافي', stock: 40, cost: 180, price: 280 }
-        ];
+        let inventory = [];
         let purchases = [];
         let sales = [];
-        let employees = [
-            { id: '1', name: 'أحمد محمود', role: 'كاشير مبيعات', salary: 4500 }
-        ];
+        let employees = [];
         let cart = [];
 
-        function loadLocalDemoData() {
+        function loadUserData() {
+            const savedInv = localStorage.getItem(`inv_${currentActiveUser}`);
+            const savedPurch = localStorage.getItem(`purch_${currentActiveUser}`);
+            const savedSales = localStorage.getItem(`sales_${currentActiveUser}`);
+            const savedEmps = localStorage.getItem(`emps_${currentActiveUser}`);
+            const savedAvatar = localStorage.getItem(`avatar_${currentActiveUser}`);
+
+            inventory = savedInv ? JSON.parse(savedInv) : [];
+            purchases = savedPurch ? JSON.parse(savedPurch) : [];
+            sales = savedSales ? JSON.parse(savedSales) : [];
+            employees = savedEmps ? JSON.parse(savedEmps) : [];
+            cart = [];
+
+            if(savedAvatar) {
+                document.getElementById('user-avatar-img').src = savedAvatar;
+                document.getElementById('profile-preview-avatar').src = savedAvatar;
+            } else {
+                document.getElementById('user-avatar-img').src = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=250&auto=format&fit=crop";
+                document.getElementById('profile-preview-avatar').src = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=250&auto=format&fit=crop";
+            }
+
             updateInventoryUI();
             renderPOSGrid();
             renderEmployeesUI();
@@ -343,14 +448,21 @@
             calcDash();
         }
 
+        function saveUserData() {
+            localStorage.setItem(`inv_${currentActiveUser}`, JSON.stringify(inventory));
+            localStorage.setItem(`purch_${currentActiveUser}`, JSON.stringify(purchases));
+            localStorage.setItem(`sales_${currentActiveUser}`, JSON.stringify(sales));
+            localStorage.setItem(`emps_${currentActiveUser}`, JSON.stringify(employees));
+        }
+
         window.submitPurchase = function() {
             const nameStr = document.getElementById('purch-name').value.trim();
             const qty = parseInt(document.getElementById('purch-qty').value);
-            const cost = parseFloat(document.getElementById('purch-cost').value);
-            const price = parseFloat(document.getElementById('purch-price').value);
+            const cost = Math.round(parseFloat(document.getElementById('purch-cost').value));
+            const price = Math.round(parseFloat(document.getElementById('purch-price').value));
             if(!nameStr || isNaN(qty)) return showToast("أدخل بيانات صحيحة", "error");
 
-            purchases.unshift({ itemName: nameStr, qty, totalCost: qty*cost, date: new Date().toISOString() });
+            purchases.unshift({ id: 'P-' + Date.now(), itemName: nameStr, qty, totalCost: qty*cost, date: new Date().toISOString() });
             const item = inventory.find(i => i.name.toLowerCase() === nameStr.toLowerCase());
             if(item) {
                 item.stock += qty;
@@ -360,6 +472,7 @@
                 inventory.push({ id: Date.now().toString(), name: nameStr, stock: qty, cost, price });
             }
             document.getElementById('purchase-form').reset();
+            saveUserData();
             updateInventoryUI();
             renderPOSGrid();
             renderTransactionsLog();
@@ -384,6 +497,10 @@
             const tbody = document.getElementById('inventory-table-body');
             if(!tbody) return;
             tbody.innerHTML = '';
+            if(inventory.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-gray-400">المخزن فارغ تماماً</td></tr>`;
+                return;
+            }
             inventory.forEach(i => {
                 tbody.innerHTML += `<tr class="hover:bg-gray-50"><td class="p-3 font-bold">${i.name}</td><td class="p-3">${i.stock}</td><td class="p-3">${formatMoney(i.cost)}</td><td class="p-3">${formatMoney(i.price)}</td><td class="p-3">${i.stock>5?'<span class="text-emerald-600 font-bold">متوفر</span>':'<span class="text-amber-600 font-bold">قارب على النفاذ</span>'}</td></tr>`;
             });
@@ -394,6 +511,10 @@
             const grid = document.getElementById('pos-products-grid');
             if(!grid) return;
             grid.innerHTML = '';
+            if(inventory.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center py-10 text-gray-400">لا توجد منتجات بالمخزن. أضف مشتريات أولاً.</div>`;
+                return;
+            }
             inventory.forEach(i => {
                 grid.innerHTML += `<div onclick="addToCart('${i.id}','${i.name}',${i.price},${i.stock})" class="bg-white p-3 rounded-xl border text-center cursor-pointer hover:border-blue-500 shadow-sm"><h4 class="font-bold text-sm">${i.name}</h4><p class="text-xs text-gray-500">المتاح: ${i.stock}</p><span class="text-blue-600 font-bold text-sm">${i.price} ج.م</span></div>`;
             });
@@ -414,9 +535,14 @@
             const totalEl = document.getElementById('cart-total');
             if(!cont) return;
             cont.innerHTML = ''; let total = 0;
+            if(cart.length === 0) {
+                cont.innerHTML = `<div class="text-center py-10 text-gray-400 text-sm">الفاتورة فارغة</div>`;
+                totalEl.innerText = "0 ج.م";
+                return;
+            }
             cart.forEach(c => {
                 total += c.price * c.qty;
-                cont.innerHTML += `<div class="flex justify-between items-center bg-slate-50 p-2 rounded-xl mb-1 text-sm"><div><span>${c.name}</span><br><span class="text-xs text-gray-500">${c.price} × ${c.qty}</span></div><button onclick="removeFromCart('${c.id}')" class="text-red-500"><i class="fa-solid fa-trash"></i></button></div>`;
+                cont.innerHTML += `<div class="flex justify-between items-center bg-slate-50 p-2 rounded-xl mb-1 text-sm"><div class="text-right"><span>${c.name}</span><br><span class="text-xs text-gray-500">${c.price} × ${c.qty}</span></div><button onclick="removeFromCart('${c.id}')" class="text-red-500"><i class="fa-solid fa-trash"></i></button></div>`;
             });
             totalEl.innerText = formatMoney(total);
         }
@@ -435,6 +561,7 @@
 
             const currentCart = [...cart];
             cart = [];
+            saveUserData();
             renderCart();
             updateInventoryUI();
             renderPOSGrid();
@@ -459,10 +586,12 @@
         window.submitEmployee = function() {
             const name = document.getElementById('emp-name').value;
             const role = document.getElementById('emp-role').value;
-            const salary = document.getElementById('emp-salary').value;
+            const phone = document.getElementById('emp-phone').value;
+            const salary = Math.round(parseFloat(document.getElementById('emp-salary').value));
             if(!name || !salary) return;
-            employees.push({ id: Date.now().toString(), name, role, salary });
+            employees.push({ id: Date.now().toString(), name, role, phone, salary });
             document.getElementById('employee-form').reset();
+            saveUserData();
             renderEmployeesUI();
             showToast("تم حفظ بيانات العامل بنجاح", "success");
         };
@@ -471,13 +600,18 @@
             const tbody = document.getElementById('employees-table-body');
             if(!tbody) return;
             tbody.innerHTML = '';
+            if(employees.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-gray-400">لا يوجد موظفون مسجلون</td></tr>`;
+                return;
+            }
             employees.forEach(e => {
                 tbody.innerHTML += `<tr><td class="p-3 font-bold">${e.name}</td><td class="p-3">${e.role}</td><td class="p-3 font-bold text-emerald-600">${formatMoney(e.salary)}</td><td class="p-3 text-center"><button onclick="paySalary('${e.name}', ${e.salary})" class="bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-xl text-xs font-bold border">صرف الراتب</button></td></tr>`;
             });
         }
 
         window.paySalary = function(name, salary) {
-            purchases.unshift({ itemName: `مصروفات راتب: (${name})`, qty: 1, totalCost: salary, date: new Date().toISOString() });
+            purchases.unshift({ id: 'P-' + Date.now(), itemName: `مصروفات راتب: (${name})`, qty: 1, totalCost: salary, date: new Date().toISOString() });
+            saveUserData();
             calcDash();
             renderTransactionsLog();
             showToast(`تم صرف راتب العامل ${name} وسجله كمصروف بنجاح`, "success");
@@ -492,15 +626,40 @@
             showToast("تم حفظ الإعدادات بنجاح", "success");
         };
 
+        window.clearAllTransactions = function() {
+            sales = [];
+            purchases = [];
+            saveUserData();
+            renderTransactionsLog();
+            calcDash();
+            showToast("تم مسح سجل العمليات والفواتير بنجاح", "success");
+        };
+
+        window.deleteSingleTransaction = function(id, type) {
+            if(type === 'sale') {
+                sales = sales.filter(s => s.invoiceId !== id && s.id !== id);
+            } else {
+                purchases = purchases.filter(p => p.id !== id);
+            }
+            saveUserData();
+            renderTransactionsLog();
+            calcDash();
+            showToast("تم حذف العملية بنجاح", "success");
+        };
+
         function renderTransactionsLog() {
             const tbody = document.getElementById('transactions-log-body');
             if(!tbody) return;
             tbody.innerHTML = '';
+            if(sales.length === 0 && purchases.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-gray-400">لا توجد عمليات سابقة</td></tr>`;
+                return;
+            }
             sales.forEach(s => {
-                tbody.innerHTML += `<tr><td class="p-3 font-bold">${s.invoiceId}</td><td class="p-3"><span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded text-xs font-bold">بيع</span></td><td class="p-3">${formatDate(s.date)}</td><td class="p-3 font-bold text-emerald-600">${formatMoney(s.total)}</td><td class="p-3 text-center"><button onclick='openInvoiceModal(${JSON.stringify(s)})' class="bg-blue-50 text-blue-600 px-3 py-1 rounded text-xs font-bold">استعراض</button></td></tr>`;
+                tbody.innerHTML += `<tr><td class="p-3 font-bold">${s.invoiceId}</td><td class="p-3"><span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded text-xs font-bold">بيع</span></td><td class="p-3">${formatDate(s.date)}</td><td class="p-3 font-bold text-emerald-600">${formatMoney(s.total)}</td><td class="p-3 text-center"><button onclick="deleteSingleTransaction('${s.invoiceId || s.id}', 'sale')" class="text-red-500 hover:text-red-700 p-1"><i class="fa-solid fa-trash-can"></i></button><button onclick='openInvoiceModal(${JSON.stringify(s)})' class="bg-blue-50 text-blue-600 px-3 py-1 rounded text-xs font-bold mr-2">استعراض</button></td></tr>`;
             });
             purchases.forEach(p => {
-                tbody.innerHTML += `<tr><td class="p-3 font-bold">PURCHASE</td><td class="p-3"><span class="bg-rose-100 text-rose-800 px-2 py-0.5 rounded text-xs font-bold">مشتريات</span></td><td class="p-3">${formatDate(p.date)}</td><td class="p-3 font-bold text-rose-600">${formatMoney(p.totalCost)}</td><td class="p-3 text-center">-</td></tr>`;
+                tbody.innerHTML += `<tr><td class="p-3 font-bold">${p.itemName}</td><td class="p-3"><span class="bg-rose-100 text-rose-800 px-2 py-0.5 rounded text-xs font-bold">مشتريات</span></td><td class="p-3">${formatDate(p.date)}</td><td class="p-3 font-bold text-rose-600">${formatMoney(p.totalCost)}</td><td class="p-3 text-center"><button onclick="deleteSingleTransaction('${p.id}', 'purchase')" class="text-red-500 hover:text-red-700 p-1"><i class="fa-solid fa-trash-can"></i></button></td></tr>`;
             });
         }
 
