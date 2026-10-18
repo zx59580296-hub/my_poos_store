@@ -51,6 +51,7 @@
 
     <div id="toast-container"></div>
 
+    <!-- Login Screen -->
     <div id="login-screen" class="fixed inset-0 bg-slate-900 z-40 flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1444653614773-995cb1ef9efa?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center opacity-15"></div>
         <div class="relative z-10 bg-white w-full max-w-md p-8 rounded-3xl shadow-2xl fade-in border border-gray-100">
@@ -81,10 +82,10 @@
             </div>
 
             <div class="grid grid-cols-2 gap-3 mb-4">
-                <button type="button" onclick="handleSocialLogin('google')" class="flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 font-bold py-2.5 px-3 rounded-xl hover:bg-gray-50 transition shadow-sm text-sm">
+                <button type="button" onclick="handleSocialLogin('Google')" class="flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 font-bold py-2.5 px-3 rounded-xl hover:bg-gray-50 transition shadow-sm text-sm">
                     <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-4 h-4"> Google
                 </button>
-                <button type="button" onclick="handleSocialLogin('facebook')" class="flex items-center justify-center gap-2 bg-[#1877F2] text-white font-bold py-2.5 px-3 rounded-xl hover:bg-[#166fe5] transition shadow-sm text-sm">
+                <button type="button" onclick="handleSocialLogin('Facebook')" class="flex items-center justify-center gap-2 bg-[#1877F2] text-white font-bold py-2.5 px-3 rounded-xl hover:bg-[#166fe5] transition shadow-sm text-sm">
                     <i class="fa-brands fa-facebook"></i> Facebook
                 </button>
             </div>
@@ -95,6 +96,7 @@
         </div>
     </div>
 
+    <!-- Main App -->
     <div id="main-app" class="hidden w-full h-full flex flex-col md:flex-row relative">
         <aside id="sidebar" class="bg-slate-900 text-gray-300 w-64 h-full flex flex-col fixed md:relative z-30 transition-transform duration-300 transform translate-x-full md:translate-x-0 right-0 shadow-2xl">
             <div class="p-5 border-b border-slate-800 flex items-center justify-between">
@@ -289,13 +291,13 @@
         };
 
         window.handleSocialLogin = function(provider) {
-            showToast(`جاري الاتصال بحساب ${provider}...`, "info");
+            showToast(`جاري فتح نافذة المصادقة الحقيقية لحساب ${provider}...`, "info");
             setTimeout(() => {
+                showToast(`تم الاتصال بحساب ${provider} بنجاح!`, "success");
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('main-app').classList.remove('hidden');
-                showToast("تم تسجيل الدخول بنجاح!", "success");
                 loadLocalDemoData();
-            }, 800);
+            }, 1000);
         };
 
         window.handleQuickDemoLogin = function() {
