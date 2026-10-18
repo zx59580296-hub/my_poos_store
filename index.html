@@ -60,43 +60,29 @@
                     <i class="fa-solid fa-store text-3xl"></i>
                 </div>
                 <h1 class="text-2xl font-extrabold text-gray-900">نظام الإدارة والمحاسبة الذكي</h1>
-                <p class="text-gray-500 text-sm mt-1 font-semibold">سجل الدخول للوصول للوحة التحكم الفورية</p>
+                <p class="text-gray-500 text-sm mt-1 font-semibold">أدخل البريد وكلمة المرور المعتمدة للوصول</p>
             </div>
 
-            <form onsubmit="handleDirectLogin(event)" class="space-y-4 mb-4">
+            <form onsubmit="handleSecureLogin(event)" class="space-y-4 mb-4">
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-1">البريد الإلكتروني <span class="text-red-500">*</span></label>
-                    <input type="email" id="login-email" placeholder="admin@store.com" required class="w-full border border-gray-300 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none">
+                    <input type="email" id="login-email" value="admin@store.com" required class="w-full border border-gray-300 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none">
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-1">كلمة المرور <span class="text-red-500">*</span></label>
-                    <input type="password" id="login-password" placeholder="••••••••" required class="w-full border border-gray-300 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none">
+                    <input type="password" id="login-password" value="59580296" required class="w-full border border-gray-300 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none">
                 </div>
                 <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow transition">
-                    تسجيل الدخول للنظام
+                    تسجيل الدخول الآمن للنظام
                 </button>
             </form>
 
-            <div class="flex items-center my-3">
-                <hr class="flex-1 border-gray-200"><span class="px-3 text-xs text-gray-400 font-bold">أو الدخول الاجتماعي الآمن</span><hr class="flex-1 border-gray-200">
-            </div>
-
-            <div class="grid grid-cols-2 gap-3 mb-4">
-                <button type="button" onclick="handleSocialLogin('Google')" class="flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 font-bold py-2.5 px-3 rounded-xl hover:bg-gray-50 transition shadow-sm text-sm">
-                    <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-4 h-4"> Google
-                </button>
-                <button type="button" onclick="handleSocialLogin('Facebook')" class="flex items-center justify-center gap-2 bg-[#1877F2] text-white font-bold py-2.5 px-3 rounded-xl hover:bg-[#166fe5] transition shadow-sm text-sm">
-                    <i class="fa-brands fa-facebook"></i> Facebook
-                </button>
-            </div>
-
-            <button type="button" onclick="handleQuickDemoLogin()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl shadow transition flex items-center justify-center gap-2">
+            <button type="button" onclick="handleQuickDemoLogin()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl shadow transition flex items-center justify-center gap-2 mt-3">
                 <i class="fa-solid fa-bolt"></i> الدخول الفوري لتجربة المحل
             </button>
         </div>
     </div>
 
-    <!-- Main App -->
     <div id="main-app" class="hidden w-full h-full flex flex-col md:flex-row relative">
         <aside id="sidebar" class="bg-slate-900 text-gray-300 w-64 h-full flex flex-col fixed md:relative z-30 transition-transform duration-300 transform translate-x-full md:translate-x-0 right-0 shadow-2xl">
             <div class="p-5 border-b border-slate-800 flex items-center justify-between">
@@ -280,30 +266,25 @@
             if(viewId === 'sales') renderPOSGrid();
         };
 
-        window.handleDirectLogin = function(event) {
+        window.handleSecureLogin = function(event) {
             event.preventDefault();
-            const email = document.getElementById('login-email').value;
-            if(!email) return showToast("أدخل البريد الإلكتروني", "error");
-            document.getElementById('login-screen').classList.add('hidden');
-            document.getElementById('main-app').classList.remove('hidden');
-            showToast("مرحباً بك في لوحة التحكم!", "success");
-            loadLocalDemoData();
-        };
+            const email = document.getElementById('login-email').value.trim();
+            const pass = document.getElementById('login-password').value.trim();
 
-        window.handleSocialLogin = function(provider) {
-            showToast(`جاري فتح نافذة المصادقة الحقيقية لحساب ${provider}...`, "info");
-            setTimeout(() => {
-                showToast(`تم الاتصال بحساب ${provider} بنجاح!`, "success");
+            if(email === 'admin@store.com' && pass === '59580296') {
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('main-app').classList.remove('hidden');
+                showToast("تم تسجيل الدخول بنجاح!", "success");
                 loadLocalDemoData();
-            }, 1000);
+            } else {
+                showToast("البريد أو كلمة المرور غير صحيحة (استخدم admin@store.com و 59580296)", "error");
+            }
         };
 
         window.handleQuickDemoLogin = function() {
             document.getElementById('login-screen').classList.add('hidden');
             document.getElementById('main-app').classList.remove('hidden');
-            showToast("تم الدخول بنجاح!", "success");
+            showToast("تم الدخول الفوري بنجاح!", "success");
             loadLocalDemoData();
         };
 
