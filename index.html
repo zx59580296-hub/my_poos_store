@@ -3,27 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام إدارة المحلات والمخازن - الإصدار الشامل Pro</title>
-    
-    <!-- Tailwind CSS -->
+    <title>نظام الإدارة والمحاسبة الشامل Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Google Fonts: Cairo -->
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
-    
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['Cairo', 'sans-serif'] },
-                    colors: { primary: '#2563eb', secondary: '#1e40af', dark: '#0f172a', light: '#f8fafc', success: '#10b981', danger: '#ef4444' }
-                }
-            }
-        }
-    </script>
     <style>
         body { font-family: 'Cairo', sans-serif; background-color: #f8fafc; overflow: hidden; }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -36,17 +19,12 @@
         .toast.success { background-color: #10b981; }
         .toast.error { background-color: #ef4444; }
         .toast.info { background-color: #3b82f6; }
-        .loader { border: 3px solid #f3f3f3; border-top: 3px solid #2563eb; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: none; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="text-gray-800 h-screen flex">
-    <div id="global-loader" class="fixed inset-0 bg-white z-50 flex flex-col items-center justify-center transition-opacity duration-300">
-        <div class="w-16 h-16 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin mb-4"></div>
-        <h2 class="text-xl font-bold text-gray-700">جاري تحميل نظام الإدارة الشامل...</h2>
-    </div>
     <div id="toast-container"></div>
 
+    <!-- Login Screen -->
     <div id="login-screen" class="fixed inset-0 bg-slate-900 z-40 flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1444653614773-995cb1ef9efa?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center opacity-15"></div>
         <div class="relative z-10 bg-white w-full max-w-md p-8 rounded-3xl shadow-2xl fade-in border border-gray-100">
@@ -55,9 +33,9 @@
                     <i class="fa-solid fa-store text-3xl"></i>
                 </div>
                 <h1 class="text-2xl font-extrabold text-gray-900">نظام الإدارة والمحاسبة الذكي</h1>
-                <p class="text-gray-500 text-sm mt-1 font-semibold">سجل الدخول بحسابك الحقيقي للوصول للوحة التحكم</p>
+                <p class="text-gray-500 text-sm mt-1 font-semibold">سجل الدخول للوصول للوحة التحكم الفورية</p>
             </div>
-            <form onsubmit="handleLogin('email', event)" class="space-y-4 mb-6">
+            <form onsubmit="handleDirectLogin(event)" class="space-y-4 mb-6">
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-1">البريد الإلكتروني <span class="text-red-500">*</span></label>
                     <input type="email" id="login-email" placeholder="admin@store.com" required class="w-full border border-gray-300 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-500">
@@ -66,27 +44,19 @@
                     <label class="block text-sm font-bold text-gray-700 mb-1">كلمة المرور <span class="text-red-500">*</span></label>
                     <input type="password" id="login-password" placeholder="••••••••" required class="w-full border border-gray-300 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
-                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow transition flex justify-center items-center gap-2">
-                    <span>تسجيل الدخول / إنشاء حساب</span>
-                    <div id="loader-email" class="loader border-t-white"></div>
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow transition">
+                    تسجيل الدخول للنظام
                 </button>
             </form>
-            <div class="flex items-center my-4"><hr class="flex-1 border-gray-200"><span class="px-3 text-xs text-gray-400 font-bold">أو بواسطة حسابات حقيقية</span><hr class="flex-1 border-gray-200"></div>
-            <div class="grid grid-cols-2 gap-3">
-                <button type="button" onclick="handleLogin('google')" class="flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 font-bold py-2.5 px-4 rounded-xl hover:bg-gray-50 transition relative">
-                    <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-5 h-5"> Google
-                    <div id="loader-google" class="loader absolute left-2"></div>
-                </button>
-                <button type="button" onclick="handleLogin('facebook')" class="flex items-center justify-center gap-2 bg-[#1877F2] text-white font-bold py-2.5 px-4 rounded-xl hover:bg-[#166fe5] transition relative">
-                    <i class="fa-brands fa-facebook text-lg"></i> Facebook
-                    <div id="loader-facebook" class="loader absolute left-2 border-t-white"></div>
-                </button>
-            </div>
+            <div class="flex items-center my-4"><hr class="flex-1 border-gray-200"><span class="px-3 text-xs text-gray-400 font-bold">أو الدخول السريع</span><hr class="flex-1 border-gray-200"></div>
+            <button type="button" onclick="handleQuickDemoLogin()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl shadow transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-bolt"></i> الدخول الفوري لتجربة المحل
+            </button>
         </div>
     </div>
 
+    <!-- Main App Layout -->
     <div id="main-app" class="hidden w-full h-full flex flex-col md:flex-row relative">
-        <div id="mobile-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/50 z-20 hidden md:hidden"></div>
         <aside id="sidebar" class="bg-slate-900 text-gray-300 w-64 h-full flex flex-col fixed md:relative z-30 transition-transform duration-300 transform translate-x-full md:translate-x-0 right-0 shadow-2xl">
             <div class="p-5 border-b border-slate-800 flex items-center justify-between">
                 <div class="flex items-center gap-3">
@@ -107,7 +77,6 @@
                 <button onclick="switchView('transactions', this)" class="nav-btn flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition w-full text-right"><i class="fa-solid fa-clock-rotate-left w-5 text-cyan-400"></i> <span>سجل العمليات والفواتير</span></button>
                 <button onclick="switchView('employees', this)" class="nav-btn flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition w-full text-right"><i class="fa-solid fa-users-gear w-5 text-rose-400"></i> <span>إدارة العمال والرواتب</span></button>
                 <button onclick="switchView('profile', this)" class="nav-btn flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition w-full text-right"><i class="fa-solid fa-user-gear w-5 text-indigo-400"></i> <span>الملف الشخصي والمتجر</span></button>
-                <button onclick="switchView('ai', this)" class="nav-btn flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-blue-900/30 text-blue-300 transition w-full text-right border-t border-slate-800 mt-2 pt-4"><i class="fa-solid fa-robot w-5 text-blue-400 animate-pulse"></i> <span>المساعد الذكي (AI)</span></button>
             </nav>
             <div class="p-4 border-t border-slate-800">
                 <button onclick="handleLogout()" class="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-red-500/10 text-red-400 w-full text-right transition font-semibold"><i class="fa-solid fa-sign-out-alt w-5"></i> <span>تسجيل الخروج</span></button>
@@ -117,9 +86,9 @@
         <main class="flex-1 h-full flex flex-col overflow-hidden bg-slate-50">
             <header class="bg-white h-16 shadow-sm border-b border-gray-100 flex items-center justify-between px-6 z-10">
                 <h2 id="header-title" class="text-xl font-bold text-gray-800">نظرة عامة</h2>
-                <div class="flex items-center gap-3 cursor-pointer" onclick="switchView('profile')">
+                <div class="flex items-center gap-3">
                     <span class="text-sm font-bold text-gray-800" id="user-display-name">مدير النظام</span>
-                    <img id="user-avatar-img" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=250&auto=format&fit=crop" class="w-10 h-10 rounded-full object-cover border-2 border-blue-500 shadow-sm">
+                    <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=250&auto=format&fit=crop" class="w-10 h-10 rounded-full object-cover border-2 border-blue-500 shadow-sm">
                 </div>
             </header>
             
@@ -198,14 +167,6 @@
                         </form>
                     </div>
                 </div>
-                <!-- AI -->
-                <div id="view-ai" class="view-section hidden fade-in h-full flex flex-col">
-                    <div class="bg-white rounded-2xl shadow-sm border flex flex-col h-[550px] overflow-hidden">
-                        <div class="p-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold">المساعد الذكي (AI)</div>
-                        <div class="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50" id="ai-chat-container"><div class="bg-white p-3 rounded-xl border max-w-[80%] text-sm">مرحباً! اسألي عن مبيعاتك أو حالة مخزونك.</div></div>
-                        <div class="p-3 border-t bg-white flex gap-2"><input type="text" id="ai-input" placeholder="اكتب سؤالك..." class="flex-1 border rounded-xl px-3 py-2 text-sm outline-none" onkeypress="if(event.key==='Enter') sendAIMessage()"><button onclick="sendAIMessage()" class="bg-indigo-600 text-white px-5 rounded-xl"><i class="fa-solid fa-paper-plane"></i></button></div>
-                    </div>
-                </div>
             </div>
         </main>
     </div>
@@ -222,28 +183,11 @@
         </div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, FacebookAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'pos-system-app';
-        let firebaseConfig = null;
-        try { if (typeof __firebase_config !== 'undefined') firebaseConfig = JSON.parse(__firebase_config); } catch(e) {}
-
-        let app, auth, db;
-        if (firebaseConfig) {
-            app = initializeApp(firebaseConfig);
-            auth = getAuth(app);
-            db = getFirestore(app);
-        }
-
-        let currentUser = null;
-        let inventory = [], purchases = [], sales = [], employees = [], cart = [];
-        let storeSettings = { storeName: "المتجر الشامل", mgrName: "مدير النظام", phone: "01000000000", address: "القاهرة" };
-
+    <script>
+        // Global scope variables and UI helpers to prevent any reference errors
         window.showToast = function(msg, type = 'info') {
             const container = document.getElementById('toast-container');
+            if(!container) return;
             const t = document.createElement('div');
             t.className = `toast ${type}`;
             t.innerHTML = `<span>${msg}</span>`;
@@ -256,101 +200,73 @@
 
         window.switchView = function(viewId, btn) {
             document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
-            document.getElementById(`view-${viewId}`).classList.remove('hidden');
+            const target = document.getElementById(`view-${viewId}`);
+            if(target) target.classList.remove('hidden');
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             if(btn) btn.classList.add('active');
         };
 
-        window.toggleSidebar = function() {
-            document.getElementById('sidebar').classList.toggle('translate-x-full');
-            document.getElementById('mobile-overlay').classList.toggle('hidden');
+        window.handleDirectLogin = function(event) {
+            event.preventDefault();
+            const email = document.getElementById('login-email').value;
+            if(!email) return showToast("أدخل البريد الإلكتروني", "error");
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('main-app').classList.remove('hidden');
+            showToast("مرحباً بك في لوحة التحكم!", "success");
+            loadLocalDemoData();
         };
 
-        window.handleLogin = async function(method, event) {
-            if (event) event.preventDefault();
-            if(!auth) { showToast("جاري إعداد الاتصال الآمن...", "error"); return; }
-
-            const loader = document.getElementById(`loader-${method}`);
-            if(loader) loader.style.display = 'block';
-
-            try {
-                if (method === 'email') {
-                    const email = document.getElementById('login-email').value.trim();
-                    const password = document.getElementById('login-password').value.trim();
-                    try {
-                        await signInWithEmailAndPassword(auth, email, password);
-                    } catch (err) {
-                        await createUserWithEmailAndPassword(auth, email, password);
-                    }
-                } else if (method === 'google') {
-                    await signInWithPopup(auth, new GoogleAuthProvider());
-                } else if (method === 'facebook') {
-                    await signInWithPopup(auth, new FacebookAuthProvider());
-                }
-            } catch (error) {
-                showToast("فشل تسجيل الدخول: " + (error.message || "تأكد من صحة الحساب"), "error");
-            } finally {
-                if(loader) loader.style.display = 'none';
-            }
+        window.handleQuickDemoLogin = function() {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('main-app').classList.remove('hidden');
+            showToast("تم الدخول بنجاح!", "success");
+            loadLocalDemoData();
         };
 
-        onAuthStateChanged(auth, (user) => {
-            const loader = document.getElementById('global-loader');
-            if (user) {
-                currentUser = user;
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('main-app').classList.remove('hidden');
-                loader.style.display = 'none';
-                loadData();
-            } else {
-                document.getElementById('main-app').classList.add('hidden');
-                document.getElementById('login-screen').classList.remove('hidden');
-                loader.style.display = 'none';
-            }
-        });
-
-        window.handleLogout = async function() {
-            if(auth) await signOut(auth);
+        window.handleLogout = function() {
+            document.getElementById('main-app').classList.add('hidden');
+            document.getElementById('login-screen').classList.remove('hidden');
+            showToast("تم تسجيل الخروج", "info");
         };
 
-        function getCol(name) { return collection(db, 'artifacts', appId, 'users', currentUser.uid, name); }
+        // Local Storage / Demo State for stable offline and GitHub Pages running
+        let inventory = [
+            { id: '1', name: 'شاشة سامسونج 24 بوصة', stock: 12, cost: 3000, price: 3800 },
+            { id: '2', name: 'كيبورد ميكانيكي RGB', stock: 25, cost: 450, price: 650 },
+            { id: '3', name: 'ماوس لاسلكي احترافي', stock: 40, cost: 180, price: 280 }
+        ];
+        let purchases = [];
+        let sales = [];
+        let employees = [];
+        let cart = [];
 
-        function loadData() {
-            if(!currentUser || !db) return;
-            onSnapshot(query(getCol('inventory')), snap => {
-                inventory = []; snap.forEach(d => inventory.push({id: d.id, ...d.data()}));
-                updateInventoryUI(); renderPOSGrid(); calcDash();
-            });
-            onSnapshot(query(getCol('purchases')), snap => {
-                purchases = []; snap.forEach(d => purchases.push({id: d.id, ...d.data()}));
-                calcDash(); updatePurchasesUI();
-            });
-            onSnapshot(query(getCol('sales')), snap => {
-                sales = []; snap.forEach(d => sales.push({id: d.id, ...d.data()}));
-                calcDash(); renderTransactionsLog();
-            });
-            onSnapshot(query(getCol('employees')), snap => {
-                employees = []; snap.forEach(d => employees.push({id: d.id, ...d.data()}));
-            });
+        function loadLocalDemoData() {
+            updateInventoryUI();
+            renderPOSGrid();
+            calcDash();
         }
 
-        window.submitPurchase = async function() {
-            if(!currentUser) return;
+        window.submitPurchase = function() {
             const nameStr = document.getElementById('purch-name').value.trim();
             const qty = parseInt(document.getElementById('purch-qty').value);
             const cost = parseFloat(document.getElementById('purch-cost').value);
             const price = parseFloat(document.getElementById('purch-price').value);
             if(!nameStr || isNaN(qty)) return showToast("أدخل بيانات صحيحة", "error");
 
-            await addDoc(getCol('purchases'), { itemName: nameStr, qty, unitCost: cost, totalCost: qty*cost, date: new Date().toISOString() });
+            purchases.unshift({ itemName: nameStr, qty, totalCost: qty*cost, date: new Date().toISOString() });
             const item = inventory.find(i => i.name.toLowerCase() === nameStr.toLowerCase());
             if(item) {
-                await updateDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'inventory', item.id), { stock: item.stock + qty, cost, price });
+                item.stock += qty;
+                item.cost = cost;
+                item.price = price;
             } else {
-                await addDoc(getCol('inventory'), { name: nameStr, stock: qty, cost, price });
+                inventory.push({ id: Date.now().toString(), name: nameStr, stock: qty, cost, price });
             }
             document.getElementById('purchase-form').reset();
-            showToast("تم إضافة المشتريات للمخزن", "success");
+            updateInventoryUI();
+            renderPOSGrid();
+            calcDash();
+            showToast("تمت إضافة المشتريات وتحديث المخزن بنجاح", "success");
         };
 
         function updateInventoryUI() {
@@ -358,7 +274,7 @@
             if(!tbody) return;
             tbody.innerHTML = '';
             inventory.forEach(i => {
-                tbody.innerHTML += `<tr class="hover:bg-gray-50"><td class="p-3 font-bold">${i.name}</td><td class="p-3">${i.stock}</td><td class="p-3">${formatMoney(i.cost)}</td><td class="p-3">${formatMoney(i.price)}</td><td class="p-3">${i.stock>5?'متوفر':'قارب على النفاذ'}</td></tr>`;
+                tbody.innerHTML += `<tr class="hover:bg-gray-50"><td class="p-3 font-bold">${i.name}</td><td class="p-3">${i.stock}</td><td class="p-3">${formatMoney(i.cost)}</td><td class="p-3">${formatMoney(i.price)}</td><td class="p-3">${i.stock>5?'<span class="text-emerald-600 font-bold">متوفر</span>':'<span class="text-amber-600 font-bold">قارب على النفاذ</span>'}</td></tr>`;
             });
         }
         window.filterInventory = updateInventoryUI;
@@ -368,13 +284,13 @@
             if(!grid) return;
             grid.innerHTML = '';
             inventory.forEach(i => {
-                grid.innerHTML += `<div onclick="addToCart('${i.id}','${i.name}',${i.price},${i.stock})" class="bg-white p-3 rounded-xl border text-center cursor-pointer hover:border-blue-500"><h4 class="font-bold text-sm">${i.name}</h4><p class="text-xs text-gray-500">المتاح: ${i.stock}</p><span class="text-blue-600 font-bold text-sm">${i.price} ج.م</span></div>`;
+                grid.innerHTML += `<div onclick="addToCart('${i.id}','${i.name}',${i.price},${i.stock})" class="bg-white p-3 rounded-xl border text-center cursor-pointer hover:border-blue-500 shadow-sm"><h4 class="font-bold text-sm">${i.name}</h4><p class="text-xs text-gray-500">المتاح: ${i.stock}</p><span class="text-blue-600 font-bold text-sm">${i.price} ج.م</span></div>`;
             });
         }
         window.filterPosItems = renderPOSGrid;
 
         window.addToCart = function(id, name, price, stock) {
-            if(stock <= 0) return showToast("المنتج نفذ", "error");
+            if(stock <= 0) return showToast("المنتج نفذ من المخزن", "error");
             const ex = cart.find(c => c.id === id);
             if(ex) { if(ex.qty < stock) ex.qty++; } else { cart.push({id, name, price, qty: 1}); }
             renderCart();
@@ -385,6 +301,7 @@
         function renderCart() {
             const cont = document.getElementById('cart-items-container');
             const totalEl = document.getElementById('cart-total');
+            if(!cont) return;
             cont.innerHTML = ''; let total = 0;
             cart.forEach(c => {
                 total += c.price * c.qty;
@@ -393,14 +310,27 @@
             totalEl.innerText = formatMoney(total);
         }
 
-        window.checkout = async function() {
-            if(cart.length === 0) return;
+        window.checkout = function() {
+            if(cart.length === 0) return showToast("الفاتورة فارغة", "error");
             const total = cart.reduce((s, c) => s + (c.price * c.qty), 0);
             const invoiceId = 'INV-' + Math.floor(100000 + Math.random()*900000);
             const date = new Date().toISOString();
-            await addDoc(getCol('sales'), { invoiceId, total, items: [...cart], date });
-            cart = []; renderCart(); showToast("تم إصدار الفاتورة", "success");
-            openInvoiceModal({ invoiceId, total, date, items: sales[0]?.items || [] });
+            sales.unshift({ invoiceId, total, items: [...cart], date });
+
+            cart.forEach(c => {
+                const inv = inventory.find(i => i.id === c.id);
+                if(inv) inv.stock = Math.max(0, inv.stock - c.qty);
+            });
+
+            const currentCart = [...cart];
+            cart = [];
+            renderCart();
+            updateInventoryUI();
+            renderPOSGrid();
+            calcDash();
+            renderTransactionsLog();
+            showToast("تم إصدار الفاتورة وتحديث المخزن بنجاح", "success");
+            openInvoiceModal({ invoiceId, total, date, items: currentCart });
         };
 
         window.openInvoiceModal = function(d) {
@@ -415,21 +345,21 @@
         };
         window.closeInvoiceModal = function() { document.getElementById('invoice-modal').classList.add('hidden'); };
 
-        window.submitEmployee = async function() {
+        window.submitEmployee = function() {
             const name = document.getElementById('emp-name').value;
             const role = document.getElementById('emp-role').value;
             const salary = document.getElementById('emp-salary').value;
             if(!name || !salary) return;
-            await addDoc(getCol('employees'), { name, role, salary, date: new Date().toISOString() });
+            employees.push({ name, role, salary });
             document.getElementById('employee-form').reset();
-            showToast("تم حفظ العمال", "success");
+            showToast("تم حفظ بيانات العامل بنجاح", "success");
         };
 
         window.saveStoreSettings = function(e) {
             e.preventDefault();
-            storeSettings.storeName = document.getElementById('setting-store-name').value;
-            storeSettings.mgrName = document.getElementById('setting-mgr-name').value;
-            showToast("تم حفظ الإعدادات", "success");
+            const storeName = document.getElementById('setting-store-name').value;
+            document.getElementById('sidebar-store-name').innerText = storeName;
+            showToast("تم حفظ الإعدادات بنجاح", "success");
         };
 
         function renderTransactionsLog() {
@@ -437,7 +367,7 @@
             if(!tbody) return;
             tbody.innerHTML = '';
             sales.forEach(s => {
-                tbody.innerHTML += `<tr><td class="p-3 font-bold">${s.invoiceId}</td><td class="p-3"><span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded text-xs font-bold">بيع</span></td><td class="p-3">${formatDate(s.date)}</td><td class="p-3 font-bold text-emerald-600">${formatMoney(s.total)}</td></tr>`;
+                tbody.innerHTML += `<tr><td class="p-3 font-bold">${s.invoiceId}</td><td class="p-3"><span class="bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded text-xs font-bold">بيع</span></td><td class="p-3">${formatDate(s.date)}</td><td class="p-3 font-bold text-emerald-600">${formatMoney(s.total)}</td></tr>`;
             });
         }
 
@@ -445,23 +375,12 @@
             const tSales = sales.reduce((sum, s) => sum + Number(s.total), 0);
             const tPurch = purchases.reduce((sum, p) => sum + Number(p.totalCost), 0);
             const tInv = inventory.reduce((sum, i) => sum + (i.cost * i.stock), 0);
+            const profit = tSales - Math.max(0, tPurch - tInv);
             document.getElementById('stat-sales').innerText = formatMoney(tSales);
             document.getElementById('stat-purchases').innerText = formatMoney(tPurch);
-            document.getElementById('stat-profit').innerText = formatMoney(tSales - (tPurch - tInv));
+            document.getElementById('stat-profit').innerText = formatMoney(profit);
             document.getElementById('stat-inventory').innerText = formatMoney(tInv);
         }
-
-        window.sendAIMessage = function() {
-            const input = document.getElementById('ai-input');
-            const cont = document.getElementById('ai-chat-container');
-            if(!input.value.trim()) return;
-            cont.innerHTML += `<div class="flex justify-end"><div class="bg-indigo-600 text-white p-3 rounded-xl max-w-[80%] text-sm">${input.value}</div></div>`;
-            const q = input.value; input.value = '';
-            setTimeout(() => {
-                cont.innerHTML += `<div class="flex justify-start"><div class="bg-white p-3 rounded-xl border max-w-[80%] text-sm">بناءً على أرقام متجرك، الأداء ممتاز جداً ويوصى بزيادة التركيز على المنتجات الأكثر طلباً لزيادة الأرباح!</div></div>`;
-                cont.scrollTop = cont.scrollHeight;
-            }, 1000);
-        };
     </script>
 </body>
 </html>
