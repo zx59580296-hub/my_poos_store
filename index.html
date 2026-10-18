@@ -4,9 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>نظام إدارة المحلات والمخازن - الإصدار الشامل Pro</title>
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts: Cairo -->
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
     <script>
         tailwind.config = {
             theme: {
@@ -17,6 +24,7 @@
             }
         }
     </script>
+
     <style>
         body { font-family: 'Cairo', sans-serif; background-color: #f8fafc; overflow: hidden; }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -43,7 +51,6 @@
 
     <div id="toast-container"></div>
 
-    <!-- Login Screen -->
     <div id="login-screen" class="fixed inset-0 bg-slate-900 z-40 flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1444653614773-995cb1ef9efa?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center opacity-15"></div>
         <div class="relative z-10 bg-white w-full max-w-md p-8 rounded-3xl shadow-2xl fade-in border border-gray-100">
@@ -71,7 +78,7 @@
             </form>
 
             <div class="flex items-center my-3">
-                <hr class="flex-1 border-gray-200"><span class="px-3 text-xs text-gray-400 font-bold">أو الدخول الاجتماعي</span><hr class="flex-1 border-gray-200">
+                <hr class="flex-1 border-gray-200"><span class="px-3 text-xs text-gray-400 font-bold">أو الدخول الاجتماعي الآمن</span><hr class="flex-1 border-gray-200">
             </div>
 
             <!-- Social Logins -->
@@ -90,7 +97,6 @@
         </div>
     </div>
 
-    <!-- Main App Layout -->
     <div id="main-app" class="hidden w-full h-full flex flex-col md:flex-row relative">
         <aside id="sidebar" class="bg-slate-900 text-gray-300 w-64 h-full flex flex-col fixed md:relative z-30 transition-transform duration-300 transform translate-x-full md:translate-x-0 right-0 shadow-2xl">
             <div class="p-5 border-b border-slate-800 flex items-center justify-between">
@@ -122,9 +128,9 @@
         <main class="flex-1 h-full flex flex-col overflow-hidden bg-slate-50">
             <header class="bg-white h-16 shadow-sm border-b border-gray-100 flex items-center justify-between px-6 z-10">
                 <h2 id="header-title" class="text-xl font-bold text-gray-800">نظرة عامة</h2>
-                <div class="flex items-center gap-3">
+                <div class="flex items-center gap-3 cursor-pointer" onclick="switchView('profile')">
                     <span class="text-sm font-bold text-gray-800" id="user-display-name">مدير النظام</span>
-                    <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=250&auto=format&fit=crop" class="w-10 h-10 rounded-full object-cover border-2 border-blue-500 shadow-sm" id="user-avatar">
+                    <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=250&auto=format&fit=crop" class="w-10 h-10 rounded-full object-cover border-2 border-blue-500 shadow-sm" id="user-avatar-img">
                 </div>
             </header>
             
@@ -203,10 +209,20 @@
                     </div>
                 </div>
 
-                <!-- Profile -->
+                <!-- Profile with Custom Avatar Upload -->
                 <div id="view-profile" class="view-section hidden fade-in">
                     <div class="bg-white rounded-2xl shadow-sm border p-6 max-w-xl mx-auto">
-                        <h3 class="text-xl font-bold mb-4 border-b pb-2">إعدادات المتجر</h3>
+                        <h3 class="text-xl font-bold mb-4 border-b pb-2">إعدادات المتجر والملف الشخصي</h3>
+                        <div class="flex items-center gap-4 mb-6 bg-slate-50 p-4 rounded-xl border">
+                            <img id="profile-preview-avatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=250&auto=format&fit=crop" class="w-16 h-16 rounded-full object-cover border-2 border-blue-500 shadow-sm">
+                            <div>
+                                <label class="block text-sm font-bold text-blue-600 cursor-pointer hover:underline mb-1">
+                                    <i class="fa-solid fa-camera"></i> تغيير صورة البروفايل
+                                    <input type="file" accept="image/*" class="hidden" onchange="handleAvatarUpload(event)">
+                                </label>
+                                <p class="text-xs text-gray-400">اختر صورة جديدة من جهازك</p>
+                            </div>
+                        </div>
                         <form onsubmit="saveStoreSettings(event)" class="space-y-4">
                             <div><label class="block text-sm font-bold mb-1">اسم المتجر</label><input type="text" id="setting-store-name" value="المتجر الشامل" class="w-full border rounded-xl px-3 py-2 text-sm outline-none"></div>
                             <div><label class="block text-sm font-bold mb-1">اسم المدير</label><input type="text" id="setting-mgr-name" value="مدير النظام" class="w-full border rounded-xl px-3 py-2 text-sm outline-none"></div>
@@ -295,6 +311,19 @@
             document.getElementById('main-app').classList.add('hidden');
             document.getElementById('login-screen').classList.remove('hidden');
             showToast("تم تسجيل الخروج", "info");
+        };
+
+        window.handleAvatarUpload = function(event) {
+            const file = event.target.files[0];
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const url = e.target.result;
+                document.getElementById('user-avatar-img').src = url;
+                document.getElementById('profile-preview-avatar').src = url;
+                showToast("تم تحديث صورة البروفايل بنجاح", "success");
+            };
+            reader.readAsDataURL(file);
         };
 
         let inventory = [
@@ -460,7 +489,9 @@
         window.saveStoreSettings = function(e) {
             e.preventDefault();
             const storeName = document.getElementById('setting-store-name').value;
+            const mgrName = document.getElementById('setting-mgr-name').value;
             document.getElementById('sidebar-store-name').innerText = storeName;
+            document.getElementById('user-display-name').innerText = mgrName;
             showToast("تم حفظ الإعدادات بنجاح", "success");
         };
 
